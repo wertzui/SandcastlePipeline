@@ -1,0 +1,42 @@
+feat(agents): add technology-specific agent role files
+
+This change enables the test-writing (step 5) and implementation (step 6)
+agents to automatically load technology-specific role files based on the
+detected technology stack in the target repository, improving output
+quality for C# and TypeScript projects.
+
+Technology detection runs once before step 5 and identifies the primary
+language by checking for .csproj files (C#) or tsconfig.json (TypeScript).
+C# takes precedence when both are present. The detected technology is
+then passed to both step 5 and step 6 to ensure consistency.
+
+Four new technology-specific agent files provide tailored guidance:
+- agents/05-write-tests.Agents.csharp.md (xUnit, NUnit, FluentAssertions)
+- agents/05-write-tests.Agents.typescript.md (Jest, Vitest, strict types)
+- agents/06-implement.Agents.csharp.md (.NET conventions, LINQ, DI)
+- agents/06-implement.Agents.typescript.md (TypeScript idioms, type safety)
+
+When no technology-specific file exists, the system falls back gracefully
+to the generic agent role files, ensuring backward compatibility.
+
+Changes are localized to src/agents.ts (detection and loading functions),
+src/pipeline.ts (orchestration), package.json (test script), and the new
+agent role files in agents/. The generic agent files remain unchanged.
+
+User Story: Add different agents for test and implementation
+
+Satisfies acceptance criteria:
+- AC-1: Technology detection for C#
+- AC-2: Technology detection for TypeScript
+- AC-3: Fallback to generic agent file
+- AC-4: Technology-specific file used for implementation step (C#)
+- AC-5: Technology-specific file used for implementation step (TypeScript)
+- AC-6: Technology-specific agent files exist with relevant content
+- AC-7: Generic agent files remain unchanged
+- AC-8: Technology detection is consistent across steps
+- AC-9: Pipeline logs indicate which agent file was loaded
+- AC-10: Mixed-technology repositories handle gracefully
+- AC-11: Backward compatibility with existing pipeline runs
+- AC-12: Code changes are localized to pipeline orchestration
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

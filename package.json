@@ -8,7 +8,8 @@
     "pipeline": "tsx src/index.ts",
     "build-image": "sandcastle podman build-image --image-name sandcastle:userstory-pipeline",
     "remove-image": "sandcastle podman remove-image --image-name sandcastle:userstory-pipeline",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-hero/sandcastle": "^0.12.0",
@@ -17,6 +18,8 @@
   "devDependencies": {
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "vitest": "^4.1.9",
+    "@vitest/ui": "^4.1.9"
   }
 }
