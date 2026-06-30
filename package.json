@@ -1,0 +1,22 @@
+{
+  "name": "sandcastle-userstory-pipeline",
+  "version": "1.0.0",
+  "description": "A 12-step AI agent pipeline (built on @ai-hero/sandcastle + Podman) that drives a user story from refinement through implementation, verification, review, commit, self-improvement and summary.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "pipeline": "tsx src/index.ts",
+    "build-image": "sandcastle podman build-image --image-name sandcastle:userstory-pipeline",
+    "remove-image": "sandcastle podman remove-image --image-name sandcastle:userstory-pipeline",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-hero/sandcastle": "^0.12.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}

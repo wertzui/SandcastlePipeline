@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Sandcastle secrets & runtime artifacts
+.sandcastle/.env
+.sandcastle/logs/
+
+# Cloned target repositories
+.work/
+
+# Pipeline run reports (kept locally, not committed)
+runs/
+
+# OS / editor
+*.log
+.DS_Store
+Thumbs.db

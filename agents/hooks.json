@@ -1,0 +1,6 @@
+{
+  "_comment": "Optional setup hooks applied to every target-repo sandbox. The Pipeline Improver (step 10) may add commands here, e.g. dependency restore/build, to make later steps more reliable. Shape mirrors Sandcastle SandboxHooks.",
+  "sandbox": {
+    "onSandboxReady": []
+  }
+}

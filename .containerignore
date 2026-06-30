@@ -1,0 +1,8 @@
+# Keep the Podman build context small. The Containerfile installs everything itself
+# and COPYs nothing, so none of these are needed during the image build.
+node_modules
+.work
+runs
+.git
+.sandcastle/.env
+.sandcastle/logs
