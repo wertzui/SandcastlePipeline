@@ -25,6 +25,17 @@ pre-written unit tests pass and the acceptance criteria are met.
    wrong, explain why in `.sandcastle-workflow/06-implementation-notes.md` rather than
    silently changing it.
 4. Make sure the project still builds and that you have not broken unrelated tests.
+5. **Verify test infrastructure is complete**: If tests were added/modified, ensure the
+   test command in `.sandcastle-workflow/05-test-command.txt` actually works. Run it
+   yourself and verify it executes without "script not found" or missing dependency
+   errors. If test framework setup is incomplete (e.g., missing package.json scripts,
+   missing dependencies), complete it before finishing.
+6. **Before completing, verify scope**: Run `git diff --name-only` or `git status` to
+   check which files were modified. If files outside the intended scope were changed
+   (especially line-ending-only changes like CRLF↔LF conversions), revert them with
+   `git checkout -- <file>`. Your changes should be surgical and limited to the files
+   the plan explicitly mentions. Document the final change scope in your implementation
+   notes.
 
 ## Output
 - The production code changes.

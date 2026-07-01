@@ -15,7 +15,11 @@ that the unit tests may not fully cover.
 1. For **each** `AC-n`, determine whether it is fully met by the current code. Look at
    the real implementation, not just the tests. Consider edge cases and error handling
    named in the criteria.
-2. Decide an overall verdict:
+2. **Focus on the working tree** (current staged/unstaged changes via `git status` and
+   `git diff`). Avoid spending time on git history, commit archaeology, or "was this
+   file modified" checks unless the AC explicitly requires comparing against a baseline.
+   The implementation is in the current working state, not necessarily committed.
+3. Decide an overall verdict:
    - `passed = true` only if **every** acceptance criterion is fully satisfied.
    - Otherwise `passed = false`, and list concrete, actionable gaps. Each issue must
      name the `AC-n` it relates to and exactly what is missing or wrong, so the

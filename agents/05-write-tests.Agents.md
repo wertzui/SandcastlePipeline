@@ -32,12 +32,18 @@ compile) until the implementer does their work; that is correct and intended.
 ## Outputs
 1. The test files themselves, placed according to repository conventions.
 2. `.sandcastle-workflow/05-tests.md` — a short note listing the tests you added,
-   which `AC-n` each covers, and any stubs the implementer must complete.
+   which `AC-n` each covers, any stubs the implementer must complete, **and any test
+   infrastructure setup required** (e.g. "Add 'test': 'vitest run' to package.json
+   scripts" or "Install pytest: pip install pytest"). Be explicit about package.json
+   script additions, dependency installations, or configuration files that must exist
+   for the test command to work.
 3. `.sandcastle-workflow/05-test-command.txt` — **a single line** containing the exact
    shell command the pipeline will run (from the repository root) to execute the
    tests. It must be deterministic and non-interactive (e.g.
    `dotnet test path/To/Project.Tests.csproj`, `npx vitest run`, `pytest -q`).
-   Write ONLY the command, no commentary, no code fences.
+   Write ONLY the command, no commentary, no code fences. **The command must be
+   runnable as-is**; if it requires package.json script setup, document that clearly
+   in 05-tests.md so the implementer completes it.
 
 ## Rules
 - Prefer running a focused but sufficient set of tests; the command must exit non-zero

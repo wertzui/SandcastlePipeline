@@ -13,14 +13,34 @@ improvement passes are sharper. You operate on the **orchestrator repository**.
   `agents/11-improve-self.Agents.md` (this file).
 
 ## Your task
-1. Critique the improvement step you just performed: Was your diagnosis well-grounded
-   in the report and logs? Did you miss systemic issues? Were your edits too broad,
-   too timid, or off-target? Did you correctly respect the IO contract boundaries?
-2. Improve `agents/10-improve.Agents.md` to encode the lessons: better diagnostic
-   heuristics, clearer prioritisation of which agent to fix first, sharper guidance on
-   when to add hooks/MCPs/skills versus editing instructions, and stronger guardrails.
-3. Improve this file (`agents/11-improve-self.Agents.md`) where your own reflection
-   process was weak.
+1. **Critique the improvement step rigorously**: 
+   - **Evidence quality**: Did the improver read actual log files, or just the report
+     summary? Check the improver log for `view` or `bash cat` calls to logs. Diagnosis
+     without log evidence is shallow.
+   - **Root cause depth**: Did it identify symptoms (test failed, AC violated) or true
+     root causes (missing verification step, vague instruction, environmental issue)?
+   - **Irony check**: Did the improver commit the same class of error it was trying to
+     fix? (e.g., making line-ending changes while fixing line-ending guidance). Check
+     the improver log for `git checkout` or reversions.
+   - **Conflation**: Did it merge separate issues into one, or blame the wrong agent?
+     Cross-check timestamps and attempt numbers in the report.
+   - **Scope appropriateness**: Were edits surgical, or did it rewrite large sections?
+     Did it respect IO contracts (filenames, JSON shapes)?
+2. **Improve `agents/10-improve.Agents.md`** to encode these lessons:
+   - **Better diagnostics**: Add guidance on reading logs, tracing causality, counting
+     loops, distinguishing symptoms from causes.
+   - **Systemic thinking**: When to use hooks/MCP/skills for environmental fixes versus
+     instruction edits for process fixes.
+   - **Self-verification**: Explicit step to check `git diff` and revert unintended
+     changes before completing.
+   - **Prioritization**: When multiple agents could be improved, fix upstream causes
+     first (bad plan → bad implementation; bad test documentation → incomplete
+     infrastructure).
+3. **Improve this file** where reflection was incomplete:
+   - Add critique dimensions if you found new failure modes.
+   - Refine evaluation criteria if they missed real issues.
+   - Keep focused — replace outdated guidance rather than accumulating contradictory
+     advice.
 
 ## Constraints
 - Only edit `agents/10-improve.Agents.md` and `agents/11-improve-self.Agents.md`.
@@ -29,8 +49,15 @@ improvement passes are sharper. You operate on the **orchestrator repository**.
   endlessly appending.
 
 ## Output
-- The edited improver files in place.
-- `runs/<RUN_ID>/11-self-improvements.md` — a short changelog of what you changed in the
-  improver and why.
+- The edited improver files in place (only `agents/10-improve.Agents.md` and
+  `agents/11-improve-self.Agents.md`).
+- `runs/<RUN_ID>/11-self-improvements.md` — a short changelog with:
+  - **Critique Summary**: Key findings about the improver's performance (2-4 bullet
+    points: what it did well, what it missed, any ironic failures).
+  - **Changes to 10-improve.Agents.md**: What you added/modified and why.
+  - **Changes to 11-improve-self.Agents.md**: What you refined in the reflection process
+    itself (if any).
+  - **Files Modified**: Verify this is exactly `10-improve.Agents.md` and
+    `11-improve-self.Agents.md` (check `git diff --name-status`).
 
 When finished, print the completion signal on its own line.
