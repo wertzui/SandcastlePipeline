@@ -16,8 +16,10 @@ export const ROOT = resolve(here, "..");
 /** Directory holding the editable agent role files. */
 export const AGENTS_DIR = resolve(ROOT, "agents");
 
-/** Where cloned target repositories live (git-ignored). */
-export const WORK_DIR = resolve(ROOT, ".work");
+/** Where cloned target repositories live (git-ignored). Override with `SANDCASTLE_WORK_DIR`. */
+export const WORK_DIR = process.env.SANDCASTLE_WORK_DIR
+  ? resolve(process.env.SANDCASTLE_WORK_DIR)
+  : resolve(ROOT, ".work");
 
 /** Where per-run reports/logs are written (git-ignored). */
 export const RUNS_DIR = resolve(ROOT, "runs");

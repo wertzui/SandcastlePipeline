@@ -90,6 +90,7 @@ printed two-audience summary.
 | `SANDCASTLE_MODEL_<STEP>` | — | Per-step override (e.g. `SANDCASTLE_MODEL_IMPLEMENT=gpt-5`; steps: `REFINE`,`TECHNICAL`,`PLAN`,`TESTS`,`IMPLEMENT`,`ACCEPTANCE`,`REVIEW`,`COMMIT`,`IMPROVE`,`IMPROVE-SELF`,`SUMMARIZE`) |
 | `SANDCASTLE_AGENT` | `copilot` | Agent backend (`copilot` or `claude`) |
 | `SANDCASTLE_IMAGE` | `sandcastle:userstory-pipeline` | Podman image name |
+| `SANDCASTLE_WORK_DIR` | `.work` (inside this repo) | Local path where target repos are cloned |
 | `SANDCASTLE_MAX_AC` | `5` | Acceptance-criteria loop cap before human escalation |
 | `SANDCASTLE_MAX_REVIEW` | `5` | Code-review loop cap before human escalation |
 | `SANDCASTLE_MAX_IMPLEMENT` | `10` | Safety cap on the implement→test loop |
