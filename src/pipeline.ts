@@ -29,7 +29,7 @@ import {
 import * as log from "./logger.js";
 import type { StoryInputs } from "./inputs.js";
 import { RunReport } from "./report.js";
-import { buildAgent, composePrompt, loadRole, type PromptSection } from "./agents.js";
+import { buildAgent, composePrompt, loadRole, loadRoleWithTech, detectTechnology, type PromptSection } from "./agents.js";
 import { checkoutBaseBranch, cloneTargetRepo, excludeFromGit } from "./git.js";
 import { provisionEnvInto } from "./env.js";
 import { loadHooks, provisionCapabilities } from "./capabilities.js";
@@ -82,13 +82,14 @@ interface AgentStepOptions {
   report: RunReport;
   sections?: PromptSection[];
   maxIterations?: number;
+  detectedTech?: string | null;
 }
 
 /** Run one agent step inside the given sandbox and record it in the report. */
 async function runAgentStep(opts: AgentStepOptions): Promise<void> {
-  const { name, roleFile, step, sandbox, report, sections = [], maxIterations = 1 } = opts;
+  const { name, roleFile, step, sandbox, report, sections = [], maxIterations = 1, detectedTech } = opts;
   const model = modelFor(step);
-  const roleText = await loadRole(roleFile);
+  const roleText = await loadRoleWithTech(roleFile, detectedTech ?? null);
   const prompt = composePrompt(roleText, sections);
   const logFile = report.logPathFor(name);
   const started = Date.now();
@@ -169,6 +170,7 @@ async function implementUntilGreen(
   inputs: StoryInputs,
   testCommand: string,
   initialFeedback: string,
+  detectedTech?: string | null,
 ): Promise<void> {
   let feedback = initialFeedback;
   let lastOutput = "";
@@ -189,6 +191,7 @@ async function implementUntilGreen(
       report,
       sections,
       maxIterations: IMPLEMENT_ITERATIONS,
+      detectedTech,
     });
 
     log.detail(`Pipeline running tests deterministically: ${testCommand}`);
@@ -354,6 +357,15 @@ export async function runPipeline(
 
     // ---- Step 5: Write tests (+ discover deterministic test command) ----
     log.step("5", "Write tests");
+    
+    // AC-8: Detect technology once before step 5 and reuse for step 6
+    const detectedTech = await detectTechnology(sandbox);
+    if (detectedTech) {
+      log.info(`Detected technology: ${detectedTech}`);
+    } else {
+      log.info('No technology-specific variant detected, will use generic roles');
+    }
+    
     await runAgentStep({
       name: "05-write-tests",
       roleFile: "05-write-tests.Agents.md",
@@ -361,6 +373,7 @@ export async function runPipeline(
       sandbox,
       report,
       sections: [storySections(inputs)],
+      detectedTech,
     });
     const testCommandRaw = await readArtifact(sandbox, "05-test-command.txt");
     if (!testCommandRaw || !testCommandRaw.trim()) {
@@ -377,7 +390,7 @@ export async function runPipeline(
 
     // ---- Step 6: Implement until the pipeline's test run is green ----
     log.step("6", "Implement (pipeline-gated on tests)");
-    await implementUntilGreen(sandbox, report, inputs, testCommand, "");
+    await implementUntilGreen(sandbox, report, inputs, testCommand, "", detectedTech);
 
     // ---- Steps 7 & 8: acceptance + review remediation loops (back to step 6) ----
     let acAttempts = 0;
@@ -419,6 +432,7 @@ export async function runPipeline(
           inputs,
           testCommand,
           `Acceptance criteria are NOT yet met. Close these gaps:\n${formatAcIssues(ac)}`,
+          detectedTech,
         );
         continue;
       }
@@ -463,6 +477,7 @@ export async function runPipeline(
           inputs,
           testCommand,
           `Code review requires changes. Address every must-fix item:\n${formatMustFix(review)}`,
+          detectedTech,
         );
         continue;
       }
