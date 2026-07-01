@@ -11,6 +11,9 @@ node_modules/
 # Pipeline run reports (kept locally, not committed)
 runs/
 
+# Sandcastle workflow artifacts
+.sandcastle-workflow/
+
 # OS / editor
 *.log
 .DS_Store
