@@ -132,3 +132,38 @@ export async function currentBranch(repoDir: string): Promise<string> {
   const { stdout } = await git(["rev-parse", "--abbrev-ref", "HEAD"], repoDir);
   return stdout.trim();
 }
+
+/** Read the `origin` remote URL configured for a checkout. */
+export async function getOriginUrl(repoDir: string): Promise<string> {
+  const { stdout } = await git(["remote", "get-url", "origin"], repoDir);
+  return stdout.trim();
+}
+
+/**
+ * Push `branch` to `origin`. When `token` is supplied, authenticates over HTTPS via a
+ * transient `Authorization` header (the same technique CI systems use) instead of
+ * relying on SSH keys or a stored credential helper on the host.
+ */
+export async function pushBranch(repoDir: string, branch: string, token?: string): Promise<void> {
+  const args = token
+    ? [
+        "-c",
+        `http.https://github.com/.extraheader=AUTHORIZATION: bearer ${token}`,
+        "push",
+        "-u",
+        "origin",
+        branch,
+      ]
+    : ["push", "-u", "origin", branch];
+  await git(args, repoDir);
+}
+
+/** Parse `{owner, repo}` out of a GitHub remote URL (https or ssh form); null otherwise. */
+export function parseGitHubRepo(url: string): { owner: string; repo: string } | null {
+  const match = url.trim().match(/github\.com[/:]([^/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/i);
+  if (!match) return null;
+  const owner = match[1];
+  const repo = match[2];
+  if (!owner || !repo) return null;
+  return { owner, repo };
+}

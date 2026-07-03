@@ -105,6 +105,14 @@ async function main(): Promise<number> {
 
     console.log("");
     log.info(`✅ Done. Work committed on branch '${result.branch}' in ${result.clonePath}.`);
+    if (result.pullRequestUrl) {
+      log.info(`🔗 Pull request: ${result.pullRequestUrl}`);
+    } else {
+      log.warn(
+        `No pull request was opened (see the run report for details); the branch ` +
+          `'${result.branch}' is committed and ready to push/PR manually if needed.`,
+      );
+    }
     if (result.summary) {
       printSummary(result.summary);
     } else {

@@ -1,10 +1,13 @@
 /**
- * The 12-step user-story pipeline.
+ * The 13-step user-story pipeline.
  *
- * Steps 2-9 and 12 run inside a single warm Podman sandbox on the target repo so
+ * Steps 2-9, 12 and 13 run inside a single warm Podman sandbox on the target repo so
  * commits and state accumulate on one branch. Test-passing is verified deterministically
  * by the pipeline via `sandbox.exec(testCommand)` — never by the agent. Steps 10-11
  * (self-improvement) run against the orchestrator repo and edit the `agents/*.Agents.md`.
+ * Step 13 pushes the branch and opens the pull request deterministically — the pipeline
+ * performs the `git push` / GitHub API call, never the agent — using the title/body the
+ * PR-description agent authored from the step-12 summary.
  */
 import {
   createSandbox,
@@ -30,10 +33,18 @@ import * as log from "./logger.js";
 import type { StoryInputs } from "./inputs.js";
 import { RunReport } from "./report.js";
 import { buildAgent, composePrompt, loadRole, loadRoleWithTech, detectTechnology, type PromptSection } from "./agents.js";
-import { checkoutBaseBranch, cloneTargetRepo, excludeFromGit } from "./git.js";
-import { provisionEnvInto } from "./env.js";
+import {
+  checkoutBaseBranch,
+  cloneTargetRepo,
+  excludeFromGit,
+  getOriginUrl,
+  parseGitHubRepo,
+  pushBranch,
+} from "./git.js";
+import { provisionEnvInto, resolvePrToken } from "./env.js";
 import { loadHooks, provisionCapabilities } from "./capabilities.js";
 import { HumanEscalation } from "./escalation.js";
+import { createPullRequest } from "./github.js";
 import {
   acceptanceResultSchema,
   codeReviewResultSchema,
@@ -285,6 +296,7 @@ export interface PipelineResult {
   branch: string;
   clonePath: string;
   worktreePreserved?: string;
+  pullRequestUrl?: string;
 }
 
 export async function runPipeline(
@@ -529,7 +541,27 @@ export async function runPipeline(
       else log.warn(`12-summary.json invalid: ${parsed.error}`);
     }
 
-    return { summary, branch: inputs.branch, clonePath };
+    // ---- Step 13: Create pull request (pipeline-owned push + GitHub API call) ----
+    log.step("13", "Create pull request");
+    await runAgentStep({
+      name: "13-create-pr",
+      roleFile: "13-create-pr.Agents.md",
+      step: "create-pr",
+      sandbox,
+      report,
+      sections: [
+        storySections(inputs),
+        {
+          heading: "Summary from step 12 (use as your primary source)",
+          body: summary
+            ? `Product Owner summary:\n${summary.productOwnerSummary}\n\nTechnical summary:\n${summary.technicalSummary}`
+            : "No machine-readable summary was produced by step 12; base the PR description on the other artifacts listed in your role spec.",
+        },
+      ],
+    });
+    const pullRequestUrl = await openPullRequest(sandbox, inputs, report);
+
+    return { summary, branch: inputs.branch, clonePath, pullRequestUrl };
   } finally {
     const close = await sandbox.close();
     worktreePreserved = close.preservedWorktreePath;
@@ -567,4 +599,66 @@ async function commitWork(
   log.info(`Committed ${sha} on ${inputs.branch}.`);
   report.record({ name: "09-commit", status: "ok", info: sha });
   return sha;
+}
+
+/**
+ * Push the work branch and open the pull request, deterministically. The agent (step
+ * 13) only authors `13-pr-title.txt` / `13-pr-description.md`; the pipeline performs
+ * the `git push` and the GitHub API call. Non-fatal: a missing token or an API error is
+ * logged as a warning (the branch is still pushed/committed) rather than escalating,
+ * since the reviewed, committed work itself is not at risk.
+ */
+async function openPullRequest(
+  sandbox: Sandbox,
+  inputs: StoryInputs,
+  report: RunReport,
+): Promise<string | undefined> {
+  const title =
+    (await readArtifact(sandbox, "13-pr-title.txt"))?.trim().split("\n")[0]?.trim() ||
+    `feat: ${inputs.title}`;
+  const body =
+    (await readArtifact(sandbox, "13-pr-description.md"))?.trim() ||
+    `Implemented via the Sandcastle user-story pipeline.\n\n${inputs.description}`;
+
+  const token = await resolvePrToken();
+  if (!token) {
+    log.warn(
+      "No GitHub token configured for pull requests (set SANDCASTLE_GITHUB_PR_TOKEN, " +
+        "GH_TOKEN or GITHUB_TOKEN in .sandcastle/.env). Skipping push/PR creation; " +
+        `the reviewed work remains committed on branch '${inputs.branch}'.`,
+    );
+    report.record({ name: "13-create-pr", status: "skipped", info: "no GitHub token configured" });
+    return undefined;
+  }
+
+  const originUrl = await getOriginUrl(sandbox.worktreePath).catch(() => "");
+  const parsed = parseGitHubRepo(originUrl);
+  if (!parsed) {
+    log.warn(`Origin remote '${originUrl}' is not a github.com URL; skipping PR creation.`);
+    report.record({ name: "13-create-pr", status: "skipped", info: `non-GitHub origin: ${originUrl}` });
+    return undefined;
+  }
+
+  try {
+    log.detail(`Pushing branch '${inputs.branch}' to origin …`);
+    await pushBranch(sandbox.worktreePath, inputs.branch, token);
+
+    log.detail(`Opening pull request ${inputs.branch} -> ${inputs.baseBranch} on ${parsed.owner}/${parsed.repo} …`);
+    const pr = await createPullRequest({
+      token,
+      owner: parsed.owner,
+      repo: parsed.repo,
+      head: inputs.branch,
+      base: inputs.baseBranch,
+      title,
+      body,
+    });
+    log.info(`Pull request: ${pr.url}`);
+    report.record({ name: "13-create-pr", status: "ok", info: pr.url });
+    return pr.url;
+  } catch (e) {
+    log.warn(`Push/PR creation failed (non-fatal, work remains committed): ${(e as Error).message}`);
+    report.record({ name: "13-create-pr", status: "failed", info: (e as Error).message.slice(0, 300) });
+    return undefined;
+  }
 }

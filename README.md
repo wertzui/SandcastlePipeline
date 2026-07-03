@@ -1,8 +1,8 @@
 # Sandcastle User-Story Pipeline
 
-A 12-step, self-improving AI agent pipeline that drives a single user story all the way
-from refinement to a reviewed, committed implementation — built on
-[`@ai-hero/sandcastle`](https://github.com/mattpocock/sandcastle) with the
+A 13-step, self-improving AI agent pipeline that drives a single user story all the way
+from refinement to a reviewed, committed implementation with an opened pull request —
+built on [`@ai-hero/sandcastle`](https://github.com/mattpocock/sandcastle) with the
 **GitHub Copilot CLI** agent and the **Podman** sandbox provider.
 
 Each agent step has its own editable instruction file under `agents/*.Agents.md`. Test
@@ -13,10 +13,10 @@ agents (and then itself) by editing those `.Agents.md` files.
 
 ---
 
-## The 12 steps
+## The 13 steps
 
 | # | Step | Runs in | Owner | Output |
-|---|------|---------|-------|--------|
+| --- | ------ | --------- | ------- | -------- |
 | 1 | **Get information** | host | pipeline | clones the repo, checks out the base branch, seeds `.sandcastle-workflow/STORY.md` from title/description/repo |
 | 2 | **Refinement** | target sandbox | `02-refinement.Agents.md` | `02-acceptance-criteria.md` (refined story + `AC-n` criteria) |
 | 3 | **Technical details** | target sandbox | `03-technical-details.Agents.md` | `03-technical-details.md` (architecture, files, contracts) |
@@ -26,11 +26,12 @@ agents (and then itself) by editing those `.Agents.md` files.
 | 7 | **Check acceptance criteria** | target sandbox | `07-acceptance-criteria.Agents.md` | `07-acceptance-result.json` `{passed, issues}`; if not passed → back to step 6 (≤ 5×, then human) |
 | 8 | **Code review** | target sandbox | `08-code-review.Agents.md` | `08-code-review-result.json` `{approved, mustFix, minor}`; verifies the previous review; if changes needed → back to step 6 (≤ 5×, then human) |
 | 9 | **Commit** | target sandbox | `09-commit.Agents.md` | agent writes the message; **the pipeline** performs the deterministic `git commit` |
-| 10 | **Improve** | orchestrator | `10-improve.Agents.md` | edits the step 2–9/12 role files; may add hooks/MCPs/skills |
+| 10 | **Improve** | orchestrator | `10-improve.Agents.md` | edits the step 2–9/12/13 role files; may add hooks/MCPs/skills |
 | 11 | **Improve self** | orchestrator | `11-improve-self.Agents.md` | improves the improver's own role files |
 | 12 | **Summarize** | target sandbox | `12-summarize.Agents.md` | `12-summary.{md,json}` — a Product-Owner part and a technical part |
+| 13 | **Create pull request** | target sandbox | `13-create-pr.Agents.md` | `13-pr-title.txt` + `13-pr-description.md` (built from the step-12 summary); **the pipeline** then `git push`es the branch and opens the PR via the GitHub API |
 
-The whole of steps 2–9 and 12 run inside **one warm Podman sandbox** on a dedicated
+The whole of steps 2–9, 12 and 13 run inside **one warm Podman sandbox** on a dedicated
 branch (`sandcastle/<slug>`), so commits and state accumulate together. Steps 10–11
 run against **this** repo (the orchestrator) and edit the `agents/*.Agents.md` files in
 place, so improvements take effect on the next run.
@@ -79,15 +80,16 @@ npm run pipeline -- --title "Add a /health endpoint" `
 `--repo` accepts a full URL, the `owner/repo` shorthand, or a local path.
 `--base-branch` is the branch the work is built on (defaults to `main`). Any missing
 input is prompted for interactively. The result is a commit on branch
-`sandcastle/<slug>` (created from the base branch) inside `.work/<repo>/`, plus a
-printed two-audience summary.
+`sandcastle/<slug>` (created from the base branch) inside `.work/<repo>/`, a pull
+request opened against the base branch (when a suitably-scoped GitHub token is
+configured — see below), plus a printed two-audience summary.
 
 ### Useful environment variables
 
 | Variable | Default | Purpose |
-|----------|---------|---------|
+| ---------- | --------- | --------- |
 | `SANDCASTLE_MODEL` | `claude-sonnet-4.5` | Default model for every step |
-| `SANDCASTLE_MODEL_<STEP>` | — | Per-step override (e.g. `SANDCASTLE_MODEL_IMPLEMENT=gpt-5`; steps: `REFINE`,`TECHNICAL`,`PLAN`,`TESTS`,`IMPLEMENT`,`ACCEPTANCE`,`REVIEW`,`COMMIT`,`IMPROVE`,`IMPROVE-SELF`,`SUMMARIZE`) |
+| `SANDCASTLE_MODEL_<STEP>` | — | Per-step override (e.g. `SANDCASTLE_MODEL_IMPLEMENT=gpt-5`; steps: `REFINE`,`TECHNICAL`,`PLAN`,`TESTS`,`IMPLEMENT`,`ACCEPTANCE`,`REVIEW`,`COMMIT`,`IMPROVE`,`IMPROVE-SELF`,`SUMMARIZE`,`CREATE-PR`) |
 | `SANDCASTLE_AGENT` | `copilot` | Agent backend (`copilot` or `claude`) |
 | `SANDCASTLE_IMAGE` | `sandcastle:userstory-pipeline` | Podman image name |
 | `SANDCASTLE_WORK_DIR` | `.work` (inside this repo) | Local path where target repos are cloned |
@@ -95,9 +97,48 @@ printed two-audience summary.
 | `SANDCASTLE_MAX_REVIEW` | `5` | Code-review loop cap before human escalation |
 | `SANDCASTLE_MAX_IMPLEMENT` | `10` | Safety cap on the implement→test loop |
 | `SANDCASTLE_IDLE_TIMEOUT` | `1200` | Per-step agent idle timeout (seconds) |
+| `SANDCASTLE_GITHUB_PR_TOKEN` | falls back to `GH_TOKEN` / `GITHUB_TOKEN` | Token used by step 13 to `git push` and open the pull request via the GitHub API. Needs `Contents: Read & write` and `Pull requests: Read & write` (fine-grained PAT), or `repo` scope (classic PAT) — broader than the Copilot-only token above. If none is configured, step 13 logs a warning and skips (the reviewed work stays committed on its branch). |
 
 Inputs can also be supplied via `SANDCASTLE_TITLE`, `SANDCASTLE_DESCRIPTION`,
 `SANDCASTLE_REPO`, `SANDCASTLE_BASE_BRANCH` (default `main`).
+
+### Using your own models (BYOK)
+
+When `SANDCASTLE_AGENT=copilot` (the default), the GitHub Copilot CLI supports
+**BYOK** ("Bring Your Own Key") — routing model requests to your own OpenAI-, Azure-,
+or Anthropic-compatible endpoint (e.g. Ollama, LM Studio, LiteLLM, Azure OpenAI)
+instead of GitHub-hosted models. See
+[Using your own LLM models in GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/use-byok-models).
+
+Set these in `.sandcastle/.env` (the pipeline provisions them into every target-repo
+sandbox alongside your GitHub token):
+
+| Variable | Required | Description |
+| ---------- | ---------- | ------------- |
+| `COPILOT_PROVIDER_BASE_URL` | Yes (for BYOK) | Base URL of your model provider's API endpoint |
+| `COPILOT_PROVIDER_TYPE` | No | `openai` (default), `azure`, or `anthropic` |
+| `COPILOT_PROVIDER_API_KEY` | No | API key for the provider (omit for unauthenticated local endpoints) |
+| `COPILOT_OFFLINE` | No | `true` to prevent Copilot CLI from contacting GitHub's servers |
+
+The pipeline always passes the model explicitly via `--model` (resolved from
+`SANDCASTLE_MODEL` / `SANDCASTLE_MODEL_<STEP>`), so set **`SANDCASTLE_MODEL`** to your
+BYOK model id — not `COPILOT_MODEL` (unused by this pipeline; setting it would be
+redundant and could silently diverge from the per-step model).
+
+Example — a LiteLLM gateway exposing an Anthropic-Messages-compatible endpoint:
+
+```dotenv
+COPILOT_PROVIDER_TYPE=anthropic
+COPILOT_PROVIDER_BASE_URL=https://litellm.example.com/
+COPILOT_PROVIDER_API_KEY=sk-...
+```
+
+```powershell
+$env:SANDCASTLE_MODEL = "bedrock.anthropic.claude-sonnet-5"
+```
+
+A GitHub token is still required for the CLI's own auth handshake even when BYOK is
+active.
 
 ---
 
@@ -118,7 +159,12 @@ wires into every future target-repo run:
 - `agents/hooks.json` — Sandcastle sandbox hooks (e.g. a `dotnet restore` /
   `npm ci` on `onSandboxReady`) to make later steps more reliable.
 - `agents/mcp.json` — copied into each target repo as `.mcp.json` (MCP servers; the
-  GitHub Copilot CLI reads project-level `.mcp.json`).
+  GitHub Copilot CLI reads project-level `.mcp.json`). Ships by default with the
+  hosted **GitHub MCP server** (`https://api.githubcopilot.com/mcp/`, named `github`
+  so it runs alongside Copilot CLI's built-in read-only GitHub MCP server rather than
+  replacing it) — set `GITHUB_PERSONAL_ACCESS_TOKEN` in `.sandcastle/.env` to
+  authenticate it, or delete the file/entry if you don't want it. Add more servers to
+  the `mcpServers` object as needed.
 - `agents/skills/**` — copied into each target repo as `.claude/skills/` (used when
   running with the `claude` backend).
 
@@ -138,12 +184,12 @@ wires into every future target-repo run:
 
 ## Layout
 
-```
+```text
 .sandcastle/
   Containerfile        # Podman image (node + python + dotnet + gh + GitHub Copilot CLI)
   .env.example         # credential template (copy to .env)
 agents/
-  02-refinement.Agents.md … 12-summarize.Agents.md   # one editable role file per step
+  02-refinement.Agents.md … 13-create-pr.Agents.md   # one editable role file per step
   hooks.json           # optional setup hooks (Improver-maintained)
 src/
   index.ts             # CLI entry: inputs, prereqs, run, escalation, summary

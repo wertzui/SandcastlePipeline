@@ -1,7 +1,7 @@
 {
   "name": "sandcastle-userstory-pipeline",
   "version": "1.0.0",
-  "description": "A 12-step AI agent pipeline (built on @ai-hero/sandcastle + Podman) that drives a user story from refinement through implementation, verification, review, commit, self-improvement and summary.",
+  "description": "A 13-step AI agent pipeline (built on @ai-hero/sandcastle + Podman) that drives a user story from refinement through implementation, verification, review, commit, self-improvement, summary and pull-request creation.",
   "type": "module",
   "private": true,
   "scripts": {

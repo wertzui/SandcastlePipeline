@@ -4,7 +4,7 @@
  *  - `agents/mcp.json`    -> copied into the target repo as `.mcp.json`
  *  - `agents/skills/**`   -> copied into the target repo as `.claude/skills/`
  */
-import { cp, mkdir, readFile } from "node:fs/promises";
+import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { SandboxHooks } from "@ai-hero/sandcastle";
@@ -36,8 +36,14 @@ export async function provisionCapabilities(repoDir: string): Promise<string[]> 
 
   const mcpSrc = join(AGENTS_DIR, "mcp.json");
   if (existsSync(mcpSrc)) {
-    await cp(mcpSrc, join(repoDir, ".mcp.json"));
-    provisioned.push(".mcp.json");
+    try {
+      const raw = JSON.parse(await readFile(mcpSrc, "utf8")) as Record<string, unknown>;
+      delete raw["_comment"];
+      await writeFile(join(repoDir, ".mcp.json"), JSON.stringify(raw, null, 2) + "\n", "utf8");
+      provisioned.push(".mcp.json");
+    } catch (e) {
+      log.warn(`Ignoring agents/mcp.json: ${(e as Error).message}`);
+    }
   }
 
   const skillsSrc = join(AGENTS_DIR, "skills");

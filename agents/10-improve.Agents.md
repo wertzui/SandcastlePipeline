@@ -14,7 +14,7 @@ how the most recent run actually went. You operate on the **orchestrator reposit
   `agents/04-plan.Agents.md`, `agents/05-write-tests.Agents.md`,
   `agents/06-implement.Agents.md`, `agents/07-acceptance-criteria.Agents.md`,
   `agents/08-code-review.Agents.md`, `agents/09-commit.Agents.md`,
-  `agents/12-summarize.Agents.md`.
+  `agents/12-summarize.Agents.md`, `agents/13-create-pr.Agents.md`.
 
 ## Your task
 1. **Ground your diagnosis in evidence**: Read the actual log files, not just the

@@ -1,0 +1,37 @@
+{
+    "_comment": "Copied into every target-repo checkout as `.mcp.json` (see src/capabilities.ts). The GitHub Copilot CLI reads project-level .mcp.json; Claude Code reads it too. Named 'github' (not 'github-mcp-server') so it runs alongside Copilot CLI's built-in read-only GitHub MCP server rather than replacing it. Requires GITHUB_PERSONAL_ACCESS_TOKEN (or a fallback GH_TOKEN/GITHUB_TOKEN) to be provisioned into the sandbox — see src/env.ts#provisionEnvInto.",
+    "mcpServers": {
+        "github": {
+            "type": "http",
+            "url": "https://api.githubcopilot.com/mcp/",
+            "headers": {
+                "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+            },
+            "binlog": {
+                "type": "stdio",
+                "command": "dotnet",
+                "args": [
+                    "dnx",
+                    "Microsoft.AITools.BinlogMcp",
+                    "--yes"
+                ],
+                "tools": [
+                    "*"
+                ]
+            },
+            "angular-cli": {
+                "type": "stdio",
+                "command": "npx",
+                "args": [
+                    "-y",
+                    "@angular/cli",
+                    "mcp"
+                ]
+            },
+            "microsoft-learn": {
+                "type": "http",
+                "url": "https://learn.microsoft.com/api/mcp"
+            }
+        }
+    }
+}
