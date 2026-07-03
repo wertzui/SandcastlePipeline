@@ -6,12 +6,46 @@
  * editable `agents/*.Agents.md` files.
  */
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
 /** Absolute path to the orchestrator project root (this repo). */
 export const ROOT = resolve(here, "..");
+
+/**
+ * Load `.sandcastle/.env` into `process.env` for the orchestrator process itself,
+ * BEFORE any of the env-driven constants below are resolved.
+ *
+ * Without this, a value like `SANDCASTLE_MODEL` set only in that file (never
+ * exported in the shell) would be silently ignored here: `env.ts#resolveCredentials`
+ * only mirrors a whitelist of *credential* keys back into `process.env` (and does so
+ * lazily, inside `main()` — well after this module's top-level constants, such as
+ * `DEFAULT_MODEL` below, have already been computed from a stale `process.env`).
+ * File values win over an already-set `process.env` entry, matching the precedence
+ * `env.ts`'s credential resolution already uses.
+ */
+function loadOrchestratorDotEnv(path: string): void {
+  if (!existsSync(path)) return;
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      value.length >= 2 &&
+      ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'")))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (value) process.env[key] = value;
+  }
+}
+loadOrchestratorDotEnv(join(ROOT, ".sandcastle", ".env"));
 
 /** Directory holding the editable agent role files. */
 export const AGENTS_DIR = resolve(ROOT, "agents");
