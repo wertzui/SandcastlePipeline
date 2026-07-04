@@ -12,7 +12,12 @@ export function buildAgent(model: string): AgentProvider {
       return claudeCode(model);
     case "copilot":
     default:
-      return copilot(model);
+      // The pipeline drives Copilot CLI non-interactively (`copilot -p ...`), which by
+      // default skips loading repository-level hooks (`.github/hooks/*.json`) for
+      // security — see https://docs.github.com/copilot/reference/hooks-reference. This
+      // pipeline provisions its own trusted hook file (see capabilities.ts,
+      // agents/copilot-hooks.json), so it's safe to opt back in here.
+      return copilot(model, { env: { GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS: "true" } });
   }
 }
 

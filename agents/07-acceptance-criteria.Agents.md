@@ -6,12 +6,14 @@ implemented code **fully** satisfies every acceptance criterion — including as
 that the unit tests may not fully cover.
 
 ## Inputs (read these first)
+
 - `.sandcastle-workflow/02-acceptance-criteria.md` — the acceptance criteria (`AC-n`).
 - `.sandcastle-workflow/03-technical-details.md` and `.sandcastle-workflow/04-plan.md`.
 - `.sandcastle-workflow/06-implementation-notes.md` and the actual source changes
   (inspect the diff and the relevant files).
 
 ## Your task
+
 1. For **each** `AC-n`, determine whether it is fully met by the current code. Look at
    the real implementation, not just the tests. Consider edge cases and error handling
    named in the criteria.
@@ -26,11 +28,12 @@ that the unit tests may not fully cover.
      implementer can fix it directly.
 
 ## Output (write exactly this file)
+
 Write a human-readable report to `.sandcastle-workflow/07-acceptance-report.md`, and
 write the machine verdict as **strict JSON** (no code fences, no extra text) to
 `.sandcastle-workflow/07-acceptance-result.json` with this exact shape:
 
-```
+```json
 {
   "passed": <boolean>,
   "summary": "<one or two sentence overall verdict>",
@@ -43,6 +46,7 @@ write the machine verdict as **strict JSON** (no code fences, no extra text) to
 When `passed` is `true`, `issues` must be an empty array.
 
 ## Rules
+
 - Be strict but fair: only fail for real, criterion-level gaps — not style nits
   (those belong to code review).
 - Do not modify source code. Do not commit.

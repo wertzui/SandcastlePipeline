@@ -6,12 +6,14 @@ production code exists. The tests you write are expected to fail (or not yet
 compile) until the implementer does their work; that is correct and intended.
 
 ## Inputs (read these first)
+
 - `.sandcastle-workflow/STORY.md`
 - `.sandcastle-workflow/02-acceptance-criteria.md`
 - `.sandcastle-workflow/03-technical-details.md`
 - `.sandcastle-workflow/04-plan.md`
 
 ## Your task
+
 1. **Discover existing test infrastructure.** Search the repository for existing test
    projects/suites and determine:
    - The test framework and assertion/mocking libraries already in use
@@ -30,6 +32,7 @@ compile) until the implementer does their work; that is correct and intended.
    implementer will fill in — keep such stubs minimal and clearly marked.
 
 ## Outputs
+
 1. The test files themselves, placed according to repository conventions.
 2. `.sandcastle-workflow/05-tests.md` — a short note listing the tests you added,
    which `AC-n` each covers, any stubs the implementer must complete, **and any test
@@ -46,6 +49,7 @@ compile) until the implementer does their work; that is correct and intended.
    in 05-tests.md so the implementer completes it.
 
 ## Rules
+
 - Prefer running a focused but sufficient set of tests; the command must exit non-zero
   on any failure and zero only when all selected tests pass.
 - Do not weaken or delete existing tests. Do not commit.

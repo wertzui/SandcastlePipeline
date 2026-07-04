@@ -68,6 +68,13 @@ Copy-Item .sandcastle\.env.example .sandcastle\.env
 npm run build-image
 ```
 
+This repo (the orchestrator) is itself linted by `npm run lint:md` /
+`npm run lint:md:fix` (`markdownlint-cli2`, config in `.markdownlint-cli2.jsonc`).
+Every **target repo** the pipeline works on additionally gets a Copilot CLI
+`postToolUse` hook that runs the same auto-fix live during agent steps — see
+[Optional capabilities the Improver can add](#optional-capabilities-the-improver-can-add)
+below.
+
 ## Run
 
 ```powershell
@@ -133,6 +140,29 @@ COPILOT_PROVIDER_BASE_URL=https://litellm.example.com/
 COPILOT_PROVIDER_API_KEY=sk-...
 ```
 
+> [!NOTE]
+> `COPILOT_PROVIDER_TYPE=anthropic` is the Copilot CLI's equivalent of setting
+> `"apiType": "messages"` in VS Code's `chatLanguageModels.json` — it makes the CLI
+> speak the native Anthropic Messages API instead of OpenAI Chat Completions. There
+> is no separate `apiType` setting for the CLI; `COPILOT_PROVIDER_TYPE` **is** that
+> knob.
+>
+> **Known gotcha — Claude Sonnet 5 / Opus 4.7+ and `temperature`:** these newer Claude
+> models reject any `temperature` other than `1` with a `400 (temperature is
+> deprecated for this model)` error. The Copilot CLI always sends a sampling
+> `temperature` and has no flag/env var to omit it, so if you route through a gateway
+> (LiteLLM, an internal proxy, etc.) rather than calling Anthropic/Bedrock directly,
+> enable param-dropping **on the gateway** so it silently strips unsupported sampling
+> params instead of forwarding them upstream. For LiteLLM:
+>
+> ```yaml
+> litellm_settings:
+>   drop_params: true
+> ```
+>
+> (or set `litellm_params.drop_params: true` on just that model's entry in
+> `model_list`). This can't be fixed from `.sandcastle/.env` — it's server-side only.
+
 ```powershell
 $env:SANDCASTLE_MODEL = "bedrock.anthropic.claude-sonnet-5"
 ```
@@ -148,8 +178,9 @@ active.
   owned by the pipeline code (`src/`). The **role and heuristics** are owned by the
   editable `agents/*.Agents.md` files. The Improve agent edits the latter, never the
   former — so self-improvement can't break the machinery.
-- The prompt for each step is composed in `src/agents.ts` as: a fixed pipeline preamble
-  + the role file + run-specific context + the completion-signal instruction.
+- The prompt for each step is composed in `src/agents.ts` as: a fixed pipeline
+  preamble, the role file, run-specific context, and the completion-signal
+  instruction (in that order).
 
 ### Optional capabilities the Improver can add
 
@@ -158,6 +189,18 @@ wires into every future target-repo run:
 
 - `agents/hooks.json` — Sandcastle sandbox hooks (e.g. a `dotnet restore` /
   `npm ci` on `onSandboxReady`) to make later steps more reliable.
+- `agents/copilot-hooks.json` — [GitHub Copilot CLI native hooks](https://docs.github.com/copilot/reference/hooks-reference),
+  copied into each target repo as `.github/hooks/sandcastle-pipeline.json`. Unlike
+  `agents/hooks.json` above (which only fires once, when the sandbox starts), these
+  hooks fire *during* an agent step — e.g. `postToolUse`, after every tool call the
+  agent makes. Ships by default with a `postToolUse` hook that runs
+  `markdownlint-cli2 --fix` on any `.md` file the agent just created or edited, so
+  Markdown lint issues are corrected automatically as the agent works rather than
+  caught later in review. Only takes effect for the `copilot` agent backend — the
+  pipeline sets `GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true` (see `src/agents.ts`) so
+  the CLI's non-interactive `-p` mode loads this repo-level hook file; the Containerfile
+  installs `markdownlint-cli2` globally so it's on `PATH` inside the sandbox. Delete
+  the file, or edit its `hooks` object, to change or remove this behavior.
 - `agents/mcp.json` — copied into each target repo as `.mcp.json` (MCP servers; the
   GitHub Copilot CLI reads project-level `.mcp.json`). Ships by default with the
   hosted **GitHub MCP server** (`https://api.githubcopilot.com/mcp/`, named `github`

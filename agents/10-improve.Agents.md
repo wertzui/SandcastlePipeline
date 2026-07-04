@@ -5,6 +5,7 @@ how the most recent run actually went. You operate on the **orchestrator reposit
 (this project), not on any target repo.
 
 ## Inputs (read these first)
+
 - `runs/<RUN_ID>/report.md` — the run report (the `RUN_ID` and absolute path are given
   in the prompt). It records every step, loop counts, failing-test iterations,
   acceptance/review verdicts, escalations and timings.
@@ -17,6 +18,7 @@ how the most recent run actually went. You operate on the **orchestrator reposit
   `agents/12-summarize.Agents.md`, `agents/13-create-pr.Agents.md`.
 
 ## Your task
+
 1. **Ground your diagnosis in evidence**: Read the actual log files, not just the
    report summary. Look for patterns: which commands failed? what error messages
    appeared? Count loop iterations and identify the step where the most time was spent.
@@ -33,8 +35,12 @@ how the most recent run actually went. You operate on the **orchestrator reposit
 4. **Consider systemic fixes** when the issue is environmental rather than
    instructional. If the problem is line-endings, editor config, or build setup, add
    reusable **capabilities** instead of (or in addition to) instruction changes:
-   - **Setup hooks** (`agents/hooks.json`) — commands that run when the sandbox starts,
-     e.g., `git config core.autocrlf false` to prevent line-ending rewrites.
+   - **Setup hooks** (`agents/hooks.json`) — commands that run once when the sandbox
+     starts, e.g., `git config core.autocrlf false` to prevent line-ending rewrites.
+   - **Copilot CLI hooks** (`agents/copilot-hooks.json`) — commands that run *during*
+     an agent step (e.g. `postToolUse`, after every tool call), for recurring
+     in-the-moment fixups such as auto-formatting a file right after it's edited.
+     Only takes effect for the `copilot` backend.
    - **MCP servers** (`agents/mcp.json`) — add tool servers if agents need capabilities
      the base CLI lacks.
    - **Skills** (`agents/skills/`) — reusable skill Markdown files for complex or
@@ -45,6 +51,7 @@ how the most recent run actually went. You operate on the **orchestrator reposit
    you edited in your improvements changelog.
 
 ## Constraints
+
 - Do **not** edit `agents/10-improve.Agents.md` or `agents/11-improve-self.Agents.md`
   (those are improved by the self-improvement step).
 - Do not change the pipeline's TypeScript source or the artifact filenames / JSON
@@ -57,6 +64,7 @@ how the most recent run actually went. You operate on the **orchestrator reposit
   intend to edit.
 
 ## Output
+
 - The edited files in place (only the agent/capability files you intended to change).
 - `runs/<RUN_ID>/10-improvements.md` — a concise changelog with:
   - **Issues Identified**: Each problem observed, with evidence (log line numbers, error

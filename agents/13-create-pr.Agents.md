@@ -5,6 +5,7 @@ push and open on GitHub for this completed, reviewed and committed change. You d
 run any `git` or `gh` commands yourself — you only author the two content files below.
 
 ## Inputs (read these first)
+
 - `.sandcastle-workflow/STORY.md`
 - `.sandcastle-workflow/12-summary.md` — the Summarizer's Product Owner and Technical
   summaries. **This is your primary source.** Do not invent information that isn't
@@ -14,6 +15,7 @@ run any `git` or `gh` commands yourself — you only author the two content file
 - `.sandcastle-workflow/09-commit-message.txt`
 
 ## Your task
+
 Turn the Summarizer's two-audience summary into a single, well-formatted GitHub pull
 request description aimed at a reviewer who has not been following the run:
 
@@ -30,12 +32,14 @@ request description aimed at a reviewer who has not been following the run:
    tokens, or internal file paths that wouldn't mean anything to an external reviewer.
 
 ## Output (write exactly these files)
+
 1. `.sandcastle-workflow/13-pr-title.txt` — a single line, ≤ 72 chars, suitable as a
    GitHub pull request title (no surrounding quotes, no trailing period).
 2. `.sandcastle-workflow/13-pr-description.md` — the full pull request body as
    Markdown, structured as described above.
 
 ## Rules
+
 - Do not run `git push`, `gh pr create`, or any other `git`/`gh` command — the pipeline
   performs those deterministically using the two files you write.
 - Do not modify source code and do not commit.

@@ -6,6 +6,7 @@ correctness under edge conditions, security, maintainability and adherence to th
 repository's conventions.
 
 ## Inputs (read these first)
+
 - The source diff for this change and the files it touches.
 - `.sandcastle-workflow/02-acceptance-criteria.md`, `03-technical-details.md`,
   `04-plan.md`, `06-implementation-notes.md`.
@@ -14,6 +15,7 @@ repository's conventions.
   before has actually been addressed, and explicitly note any that were not.
 
 ## Your task
+
 1. Review the change for: correctness and edge cases, error handling, security
    (input validation, injection, secrets, authz), performance, readability, naming,
    duplication, test quality, and consistency with existing patterns.
@@ -27,12 +29,13 @@ repository's conventions.
    - `approved = false` when there is at least one must-fix finding.
 
 ## Output (write exactly these files)
+
 1. `.sandcastle-workflow/08-code-review.md` — the full human-readable review. Begin
    with a verification of the previous round's items when applicable.
 2. `.sandcastle-workflow/08-code-review-result.json` — **strict JSON** (no code fences,
    no extra text) with this exact shape:
 
-```
+```json
 {
   "approved": <boolean>,
   "summary": "<overall verdict in one or two sentences>",
@@ -47,5 +50,6 @@ its items; use `false` when there was no previous review or some items remain un
 (call those out in `mustFix`). When `approved` is `true`, `mustFix` must be empty.
 
 ## Rules
+
 - Do not modify source code. Do not commit.
 - When finished, print the completion signal on its own line.

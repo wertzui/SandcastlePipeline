@@ -1,0 +1,13 @@
+{
+  "_comment": "GitHub Copilot CLI native hooks (https://docs.github.com/copilot/reference/hooks-reference). Copied into every target-repo checkout as `.github/hooks/sandcastle-pipeline.json` (see src/capabilities.ts). This is DIFFERENT from `agents/hooks.json`: that file configures Sandcastle's own *sandbox lifecycle* hooks (e.g. `onSandboxReady` setup commands such as `dotnet restore`); this file configures Copilot CLI's *agent-lifecycle* hooks that fire during a step, such as after every tool call. Only takes effect for the `copilot` agent backend (SANDCASTLE_AGENT=copilot). Requires GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true to load in the CLI's non-interactive `-p` prompt mode that this pipeline uses — src/agents.ts#buildAgent sets that env var for every copilot invocation, so this file is picked up automatically.",
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "input=\"$(cat)\"\npaths=\"$(printf '%s' \"$input\" | jq -r '[.toolArgs.path, .toolArgs.file_path, .toolArgs.filePath] | map(select(. != null)) | .[]' 2>/dev/null)\"\n[ -z \"$paths\" ] && exit 0\ncommand -v markdownlint-cli2 >/dev/null 2>&1 || exit 0\nwhile IFS= read -r p; do\n  case \"$p\" in\n    *.md|*.MD|*.Md|*.mkd|*.markdown)\n      markdownlint-cli2 --fix -- \"$p\" >/dev/null 2>&1 || true\n      ;;\n  esac\ndone <<< \"$paths\"\nexit 0",
+        "timeoutSec": 20
+      }
+    ]
+  }
+}

@@ -6,12 +6,14 @@ production code exists. The tests you write are expected to fail (or not yet
 compile) until the implementer does their work; that is correct and intended.
 
 ## Inputs (read these first)
+
 - `.sandcastle-workflow/STORY.md`
 - `.sandcastle-workflow/02-acceptance-criteria.md`
 - `.sandcastle-workflow/03-technical-details.md`
 - `.sandcastle-workflow/04-plan.md`
 
 ## Your task
+
 1. **Discover existing test infrastructure.** Search the repository for existing test
    projects/suites and determine:
    - The test framework already in use (xUnit, NUnit, MSTest).
@@ -27,7 +29,7 @@ compile) until the implementer does their work; that is correct and intended.
    should reference the acceptance criterion it covers (e.g., in its name or a comment).
    Cover happy paths, edge cases and error handling. Tests must be deterministic
    (no reliance on wall-clock, network, or ordering) and isolated.
-   
+
    **C#-specific best practices:**
    - Use `async Task` for async tests (xUnit automatically detects them).
    - Use `Theory` with `InlineData` or `MemberData` for parameterized tests.
@@ -38,12 +40,13 @@ compile) until the implementer does their work; that is correct and intended.
    - Use `ITestOutputHelper` for diagnostic output in xUnit.
    - Mark test classes as `public` and unsealed unless using fixtures.
    - Ensure nullable reference types are handled correctly (enable in test projects if enabled in production).
-   
+
 3. **Do not implement production code.** Stubs/interfaces are acceptable only when the
    repository's test conventions require the test to compile against a type that the
    implementer will fill in — keep such stubs minimal and clearly marked with `// TODO: Implement`.
 
 ## Outputs
+
 1. The test files themselves, placed according to repository conventions (typically mirroring
    the production code structure in a separate test project).
 2. `.sandcastle-workflow/05-tests.md` — a short note listing the tests you added,
@@ -55,6 +58,7 @@ compile) until the implementer does their work; that is correct and intended.
    Write ONLY the command, no commentary, no code fences.
 
 ## Rules
+
 - Prefer running a focused but sufficient set of tests; the command must exit non-zero
   on any failure and zero only when all selected tests pass.
 - Use `dotnet test --no-restore --no-build` if the project is already built; otherwise

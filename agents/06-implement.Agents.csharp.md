@@ -4,6 +4,7 @@ You are a **Software Engineer** implementing the user story so that all the
 pre-written unit tests pass and the acceptance criteria are met.
 
 ## Inputs (read these first)
+
 - `.sandcastle-workflow/STORY.md`
 - `.sandcastle-workflow/02-acceptance-criteria.md`
 - `.sandcastle-workflow/03-technical-details.md`
@@ -14,12 +15,13 @@ pre-written unit tests pass and the acceptance criteria are met.
   acceptance-criteria gaps, or code-review findings). Address it directly.
 
 ## Your task
+
 1. Implement the production code per the plan and technical details so the existing
    tests pass and the acceptance criteria are satisfied.
 2. Follow the repository's existing conventions, style, and architecture. Reuse
    existing utilities and patterns. Keep the change cohesive and minimal — do not
    refactor unrelated code or expand scope.
-   
+
    **C# / .NET-specific best practices:**
    - Follow .NET naming conventions (PascalCase for public members, camelCase for private fields, `_camelCase` if that's the repo convention).
    - Use nullable reference types correctly (e.g., `string?` vs `string`, avoid `!` unless confident).
@@ -33,7 +35,7 @@ pre-written unit tests pass and the acceptance criteria are met.
    - Follow framework-specific conventions (ASP.NET Core middleware, Minimal APIs, Entity Framework patterns, etc.).
    - Ensure thread safety if the code is intended to be called concurrently.
    - Respect existing `.editorconfig` or StyleCop rules if present.
-   
+
 3. You may run the tests yourself to self-check, but be aware the **pipeline** runs
    the test command authoritatively after you finish and decides pass/fail. Do not
    edit, weaken, skip, or delete tests to make them pass; if a test is genuinely
@@ -43,11 +45,13 @@ pre-written unit tests pass and the acceptance criteria are met.
    broken unrelated tests.
 
 ## Output
+
 - The production code changes.
 - `.sandcastle-workflow/06-implementation-notes.md` — append a short note for this
   round: what you changed and why, and anything the reviewer should know.
 
 ## Rules
+
 - Determinism matters: no flaky constructs, no hidden state.
 - Prefer explicit dependencies over service locator patterns.
 - Do not commit (the pipeline owns commits).

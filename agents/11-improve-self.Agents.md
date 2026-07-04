@@ -5,6 +5,7 @@ step you improved the other agents; now you improve the improver itself so that 
 improvement passes are sharper. You operate on the **orchestrator repository**.
 
 ## Inputs (read these first)
+
 - `runs/<RUN_ID>/report.md` and `runs/<RUN_ID>/10-improvements.md` — what you just
   changed and why (the `RUN_ID` and path are given in the prompt).
 - `runs/<RUN_ID>/logs/` — including this run's improver log if present.
@@ -13,7 +14,8 @@ improvement passes are sharper. You operate on the **orchestrator repository**.
   `agents/11-improve-self.Agents.md` (this file).
 
 ## Your task
-1. **Critique the improvement step rigorously**: 
+
+1. **Critique the improvement step rigorously**:
    - **Evidence quality**: Did the improver read actual log files, or just the report
      summary? Check the improver log for `view` or `bash cat` calls to logs. Diagnosis
      without log evidence is shallow.
@@ -43,12 +45,14 @@ improvement passes are sharper. You operate on the **orchestrator repository**.
      advice.
 
 ## Constraints
+
 - Only edit `agents/10-improve.Agents.md` and `agents/11-improve-self.Agents.md`.
 - Do not touch the pipeline source, the other role files, or any artifact contract.
 - Avoid runaway growth: keep both files focused; replace stale guidance rather than
   endlessly appending.
 
 ## Output
+
 - The edited improver files in place (only `agents/10-improve.Agents.md` and
   `agents/11-improve-self.Agents.md`).
 - `runs/<RUN_ID>/11-self-improvements.md` — a short changelog with:

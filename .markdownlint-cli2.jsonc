@@ -1,0 +1,14 @@
+{
+  // Repo-wide markdownlint configuration.
+  // MD013 (line-length) is disabled because these files are prose-heavy
+  // agent prompts/docs that are not hard-wrapped at 80 columns.
+  "config": {
+    "default": true,
+    "MD013": false
+  },
+  "ignores": [
+    "node_modules",
+    ".work",
+    "runs"
+  ]
+}

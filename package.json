@@ -9,17 +9,20 @@
     "build-image": "sandcastle podman build-image --image-name sandcastle:userstory-pipeline",
     "remove-image": "sandcastle podman remove-image --image-name sandcastle:userstory-pipeline",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint:md": "markdownlint-cli2 \"**/*.md\"",
+    "lint:md:fix": "markdownlint-cli2 --fix \"**/*.md\""
   },
   "dependencies": {
     "@ai-hero/sandcastle": "^0.12.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/ui": "^4.1.9",
+    "markdownlint-cli2": "^0.23.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
-    "@types/node": "^22.0.0",
-    "vitest": "^4.1.9",
-    "@vitest/ui": "^4.1.9"
+    "vitest": "^4.1.9"
   }
 }
